@@ -22,7 +22,7 @@ lint:
 autolint: autopep8 lint
 
 run_tests: clean
-	tox -e py27,py36 -- --durations=10 -vv tests
+	pytest tests
 
 test: autopep8 run_tests lint
 

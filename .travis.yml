@@ -1,20 +1,38 @@
-sudo: true
-addons:
-  apt:
-    sources:
-      - deadsnakes
-    packages:
-      - python3.6
+language: generic
+cache:
+  directories:
+    - $HOME/.cache/pyenv
 services:
   - redis-server
-language: ruby
 rvm:
-  - '2.3'
+  - 2.3
 env:
-  - SUITE=python
+  - SUITE=python PYENV=2.7.17
+  - SUITE=python PYENV=3.5.9
+  - SUITE=python PYENV=3.6.9
+  - SUITE=python PYENV=3.7.5
+  - SUITE=python PYENV=3.8.0
   - SUITE=ruby
   - SUITE=ruby MINITEST_VERSION=5.9.1
 before_install:
-  - bin/before-install
+  - if [[ ! -z "$PYENV" ]]; then
+      rm -rf ~/.pyenv;
+      export PYENV_ROOT="$HOME/.pyenv";
+      git clone https://github.com/pyenv/pyenv.git "$PYENV_ROOT";
+      export PATH=$(echo "$PATH" | sed -e 's;\(^\|:\)\/opt\/pyenv/[^:]*\($\|:\);\1;');
+      export PATH="$PYENV_ROOT/bin:$PATH";
+      mkdir -p $HOME/.cache/pyenv/versions;
+      ln -sf $HOME/.cache/pyenv/versions $(pyenv root)/versions;
+      eval "$(pyenv init -)";
+      pyenv install --skip-existing $PYENV;
+      pyenv global $PYENV;
+      python --version;
+      pip install pylint autopep8 --upgrade;
+      cd python && make install && cd ..;
+    fi
+  - if [[ "$SUITE" == "ruby" ]]; then
+      cd ruby;
+      bundle install;
+    fi
 script:
   - bin/test
